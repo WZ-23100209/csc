@@ -36,7 +36,7 @@ os.environ["LANGCHAIN_API_KEY"] = "ls__ca83d326d2574770bc46e469346dc63d"  # Upda
 # + id="hQw7BYBQQkAk"
 from langsmith import Client
 
-# client = Client()
+client = Client()
 
 # + id="4gy7U44SRGGV"
 from langchain.agents import AgentExecutor
@@ -59,7 +59,7 @@ from langchain.agents.output_parsers.openai_tools import OpenAIToolsAgentOutputP
 from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
 
 # + colab={"base_uri": "https://localhost:8080/"} id="oe7FqPobJgh3" outputId="d630214e-d3c1-4a60-ec4e-30427d65cfaf"
-llm = ChatOpenAI(model="gpt-3.5-turbo", temperature = 0.1,openai_api_key="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")
+llm = ChatOpenAI(model="gpt-3.5-turbo-0125", temperature = 0.1,openai_api_key="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")
 llm.temperature
 
 
@@ -116,10 +116,10 @@ from langchain_openai import OpenAIEmbeddings
 
 text_splitter = CharacterTextSplitter(chunk_size=100, chunk_overlap=0)
 texts = text_splitter.split_documents(documents)
-embeddings = OpenAIEmbeddings(openai_api_key="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")
+embeddings = OpenAIEmbeddings(openai_api_key="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")
 db = FAISS.from_documents(texts, embeddings)
 
-retriever = db.as_retriever(search_type="mmr",
+retriever = db.as_retriever(
     search_kwargs={'k': 1})
 
 # from langchain.tools.retriever import create_retriever_tool
@@ -139,10 +139,7 @@ docs[0].page_content
 # # Defining API functions
 
 # + id="E3xN6envfZ64"
-api_url = "https://excited-regular-worm.ngrok-free.app"
-
-# + id="c0HvqUtZieb5"
-tools=[]
+api_url = "http://localhost:5000"
 
 # + id="LxU-4yHUfK40"
 import requests
@@ -338,30 +335,10 @@ agent = (
     | llm_with_tools
     | OpenAIToolsAgentOutputParser()
 )
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True)
 
 # + id="cSUo7ch87j4V"
 chat_history = []
-
-# + colab={"base_uri": "https://localhost:8080/"} id="WfR8dheL7rcM" outputId="bcde0391-3f2d-440d-8fe9-67e5fda7fa79"
-input1 = "my order id is ABCDEF"
-result = agent_executor.invoke({"input": input1, "chat_history": chat_history})
-chat_history.extend(
-    [
-        HumanMessage(content=input1),
-        AIMessage(content=result["output"]),
-    ]
-)
-
-# + colab={"base_uri": "https://localhost:8080/"} id="bWC-6fNY-axU" outputId="1f28e5db-8668-4615-bb7e-85398a344d32"
-input2 = "My order id is ABCDEF"
-result = agent_executor.invoke({"input": input2, "chat_history": chat_history})
-chat_history.extend(
-    [
-        HumanMessage(content=input2),
-        AIMessage(content=result["output"]),
-    ]
-)
 
 
 # + id="Vxk2tyYkKNEF"
@@ -378,10 +355,10 @@ def answer_question(message, history):
 
 
 # + colab={"base_uri": "https://localhost:8080/", "height": 298} id="u_xUurGWKNvS" outputId="56b75825-9d72-4073-faa6-72f8cf255a07"
-answer_question("what is the total cost for this order")
+answer_question("what is the total cost for this order", chat_history)
 
 # + colab={"base_uri": "https://localhost:8080/"} id="52yVgJPhKTFu" outputId="6c79dd0e-f3ff-4c1c-f201-1d6571dd64b7"
-chat_history
+answer_question("My order id is ABCDEF", chat_history)
 
 # + [markdown] id="AeyDKMvhOHWv" jp-MarkdownHeadingCollapsed=true
 # # Adding Memory
@@ -511,3 +488,163 @@ import uvicorn
 config = uvicorn.Config(app)
 server = uvicorn.Server(config)
 await server.serve()
+
+text = """
+Installation →
+CI Documentation Status codecov.io Code style: black GitHub language count Conda Version Pypi pyversions Binder:lab Binder:notebook launch - renku 
+
+Jupytext
+Have you always wished Jupyter notebooks were plain text documents? Wished you could edit them in your favorite IDE? And get clear and meaningful diffs when doing version control? Then, Jupytext may well be the tool you’re looking for!
+
+Text Notebooks
+A Python notebook encoded in the py:percent format has a .py extension and looks like this:
+
+# %% [markdown]
+# This is a markdown cell
+
+# %%
+def f(x):
+  return 3*x+1
+Only the notebook inputs (and optionally, the metadata) are included. Text notebooks are well suited for version control. You can also edit or refactor them in an IDE - the .py notebook above is a regular Python file.
+
+We recommend the percent format for notebooks that mostly contain code. The percent format is available for Julia, Python, R and many other languages.
+
+If your notebook is documentation-oriented, a Markdown-based format (text notebooks with a .md extension) might be more appropriate. Depending on what you plan to do with your notebook, you might prefer the Myst Markdown format, which interoperates very well with Jupyter Book, or Quarto Markdown, or even Pandoc Markdown.
+
+Installation
+Install Jupytext in the Python environment that you use for Jupyter. Use either
+
+pip install jupytext
+or
+
+conda install jupytext -c conda-forge
+Then, restart your Jupyter Lab server, and make sure Jupytext is activated in Jupyter: .py and .md files have a Notebook icon, and you can open them as Notebooks with a right click in Jupyter Lab.
+
+
+
+Paired Notebooks
+Text notebooks with a .py or .md extension are well suited for version control. They can be edited or authored conveniently in an IDE. You can open and run them as notebooks in Jupyter Lab with a right click. However, the notebook outputs are lost when the notebook is closed, as only the notebook inputs are saved in text notebooks.
+
+A convenient alternative to text notebooks are paired notebooks. These are a set of two files, say .ipynb and .py, that contain the same notebook, but in different formats.
+
+You can edit the .py version of the paired notebook, and get the edits back in Jupyter by selecting reload notebook from disk. The outputs will be reloaded from the .ipynb file, if it exists. The .ipynb version will be updated or recreated the next time you save the notebook in Jupyter.
+
+To pair a notebook in Jupyter Lab, use the command Pair Notebook with percent Script from the Command Palette:
+
+
+
+To pair all the notebooks in a certain directory, create a configuration file with this content:
+
+# jupytext.toml at the root of your notebook directory
+formats = "ipynb,py:percent"
+Command line
+Jupytext is also available at the command line. You can
+
+pair a notebook with jupytext --set-formats ipynb,py:percent notebook.ipynb
+
+synchronize the paired files with jupytext --sync notebook.py (the inputs are loaded from the most recent paired file)
+
+convert a notebook in one format to another with jupytext --to ipynb notebook.py (use -o if you want a specific output file)
+
+pipe a notebook to a linter with e.g. jupytext --pipe black notebook.ipynb
+
+Sample use cases
+Notebooks under version control
+This is a quick how-to:
+
+Open your .ipynb notebook in Jupyter and pair it to a .py notebook, using either the pair command in Jupyter Lab, or a global configuration file
+
+Save the notebook - this creates a .py notebook
+
+Add this .py notebook to version control
+
+You might exclude .ipynb files from version control (unless you want to see the outputs versioned!). Jupytext will recreate the .ipynb files locally when the users open and save the .py notebooks.
+
+Collaborating on notebooks with Git
+Collaborating on Jupyter notebooks through Git becomes as easy as collaborating on text files.
+
+Assume that you have your .py notebooks under version control (see above). Then,
+
+Your collaborator pulls the .py notebook
+
+They open it as a notebook in Jupyter (right-click in Jupyter Lab)
+
+At that stage the notebook has no outputs. They run the notebook and save it. Outputs are regenerated, and a local .ipynb file is created
+
+They edit the notebook, and push the updated notebook.py file. The diff is nothing else than a standard diff on a Python script.
+
+You pull the updated notebook.py script, and refresh your browser. The input cells are updated based on the new content of notebook.py. The outputs are reloaded from your local .ipynb file. Finally, the kernel variables are untouched, so you have the option to run only the modified cells to get the new outputs.
+
+Editing or refactoring a notebook in an IDE
+Once your notebook is paired with a .py file, you can easily edit or refactor the .py representation of the notebook in an IDE.
+
+Once you are done editing the .py notebook, you will just have to reload the notebook in Jupyter to get the latest edits there.
+
+Note: It is simpler to close the .ipynb notebook in Jupyter when you edit the paired .py file. There is no obligation to do so; however, if you don’t, you should be prepared to read carefully the pop-up messages. If Jupyter tries to save the notebook while the paired .py file has also been edited on disk since the last reload, a conflict will be detected and you will be asked to decide which version of the notebook (in memory or on disk) is the appropriate one.
+
+More resources
+Read more about Jupytext in the documentation.
+
+If you’re new to Jupytext, you may want to start with the FAQ or with the Tutorials.
+
+There is also this short introduction to Jupytext: .
+
+Table of Contents
+Installation
+Text notebooks
+Paired notebooks
+Frontend extension
+Jupytext’s configuration file
+Advanced options
+Notebooks as code
+Notebooks as Markdown
+Supported Languages
+Jupytext CLI
+Pre-commit hook
+FAQ
+Blog posts and talks
+Contributing
+Developing Jupytext
+Jupytext ChangeLog
+Sponsored: EthicalAds
+Reach specific developers on the open source, privacy-first ad network: EthicalAds
+Ad by EthicalAds   ·   ℹ️
+ 
+Installation →
+Logo
+
+
+
+Navigation
+Installation
+Text notebooks
+Paired notebooks
+Frontend extension
+Jupytext’s configuration file
+Advanced options
+Notebooks as code
+Notebooks as Markdown
+Supported Languages
+Jupytext CLI
+Pre-commit hook
+FAQ
+Blog posts and talks
+Contributing
+Developing Jupytext
+Jupytext ChangeLog
+Quick search
+©2018-2023, The Jupytext Team. | Powered by Sphinx 7.2.6 & Alabaster 0.7.12 | Page source
+Fork me on GitHub
+  v: latest """
+
+# +
+# %%time
+from openai import OpenAI
+client = OpenAI(api_key = "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")
+
+response = client.embeddings.create(
+    input='abc',
+    model="text-embedding-3-small"
+)
+
+# print(response.data[0].embedding)
